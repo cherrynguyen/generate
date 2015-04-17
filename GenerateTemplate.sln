@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateTemplate", "GenerateTemplate\GenerateTemplate.csproj", "{301FBD60-ECFB-454B-88BC-72D33D57C6DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{9E91EDC5-3C59-4DD1-817D-A7B743286566}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{301FBD60-ECFB-454B-88BC-72D33D57C6DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{301FBD60-ECFB-454B-88BC-72D33D57C6DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{301FBD60-ECFB-454B-88BC-72D33D57C6DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{301FBD60-ECFB-454B-88BC-72D33D57C6DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E91EDC5-3C59-4DD1-817D-A7B743286566}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E91EDC5-3C59-4DD1-817D-A7B743286566}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E91EDC5-3C59-4DD1-817D-A7B743286566}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E91EDC5-3C59-4DD1-817D-A7B743286566}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

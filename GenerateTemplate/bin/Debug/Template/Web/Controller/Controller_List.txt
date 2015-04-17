@@ -1,0 +1,118 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
+using System.Text;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+using Kendo.Mvc;
+using Kendo.Mvc.Extensions;
+using Kendo.Mvc.UI;
+using SysPro.Core.Data;
+using SysPro.Core.EF;
+using SysPro.Core.Helper.Enum;
+using SysPro.Core.Helper.Extensions;
+using SysPro.Entity;
+using SysPro.Implement.ADONET;
+using SysPro.Web.Controllers.Base;
+using SysPro.Web.Models;
+using SysPro.Web.Code;
+using iTextSharp.text;
+using iTextSharp.text.html.simpleparser;
+using iTextSharp.text.pdf;
+
+namespace SysPro.Web.Controllers
+{
+    /// <summary>
+    /// {TableName} Controller
+    /// </summary>
+    public partial class {TableName}Controller : BaseAccessController
+    {
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        public {TableName}Controller(HttpContextBase context)
+            : base(context)
+        {
+
+        }
+
+        #region {TableName} List
+
+        /// <summary>
+        /// List {TableName}
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult Index()
+        {
+            var customGridState = Code.State.GetRequestRoute(Constants.Grid{TableName}List);
+            if (customGridState != null)
+            {
+                var requestRoute = customGridState.RequestRoute;
+                Code.GridControllerExtensions.AddGridStateValueProvider(this, Constants.Grid{TableName}List, requestRoute);
+                ViewBag.keyword = requestRoute[Constants.GridUrlParameters_Keyword].ToString();
+            }
+
+            return View();
+        }
+
+        public JsonResult {TableName}ReadAll([DataSourceRequest] DataSourceRequest request, string keyword)
+        {
+            var customGridState = this.GridRouteValuesWithKeyword();
+            Code.State.SaveRequest(Constants.Grid{TableName}List, customGridState);
+
+            var ctx = SingletonIpl.GetInstance<{TableName}ADOIpl>(CurrentCompany);
+            var cUser = Web.Session.GetUser();
+            if (cUser == null)
+            {
+                return Json(new DataSourceResult { Data = null, Total = 0 }, JsonRequestBehavior.AllowGet);
+            }
+            var pageIndex = request.Page;
+            var pageSize = request.PageSize;
+            var totalRecord = 0;
+            var filter = Utils.GetSqlWithKeyFilters(request.Filters, "{FilterName}");
+            var sort = Utils.GetSqlSorts(request.Sorts);
+            if (string.IsNullOrEmpty(sort))
+            {
+                sort = "{PrimaryKey} DESC";
+            }
+            var result = ctx.GetAllByPaging(pageIndex, pageSize, sort, filter, keyword, ref totalRecord);
+            var data = from q in result
+                       select new {TableName}Model()
+                                  {
+                                      {ListField}
+                                      CreatedBy = q.CreatedBy,
+                                      CreatedDate = DateTimeExtension.ToUserTime(cUser.TimeZone, (DateTime)q.CreatedDate),
+                                      LastModifiedBy = q.LastModifiedBy,
+                                      LastModifiedDate = (q.LastModifiedDate != null) ? DateTimeExtension.ToUserTime(cUser.TimeZone, (DateTime)q.CreatedDate) : (Nullable<DateTime>)null
+                                  };
+            return Json(new DataSourceResult { Data = data, Total = totalRecord }, JsonRequestBehavior.AllowGet);
+        }
+        #endregion
+		#region {TableName} Insert Update Delete
+        /// <summary>
+        /// Delete report by report id
+        /// </summary>
+        /// <param name="reportId">Report Id</param>
+        /// <returns></returns>
+        [HttpDelete]
+        public JsonResult Delete{TableName}({PrimaryType} {PrimaryKeyLower})
+        {
+            var ctx = SingletonIpl.GetInstance<{TableName}ADOIpl>(CurrentCompany);
+            var rs = ctx.Delete({PrimaryKeyLower});
+            if (rs)
+            {
+                return Json(new { result = rs, msg = GRUD.GetLangByKey(lang, Constants.Message_DeleteSuccess).FormatWith("{TableName}") }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new { result = rs, msg = GRUD.GetLangByKey(lang, Constants.Message_DeleteUnSuccess).FormatWith("{TableName}") }, JsonRequestBehavior.AllowGet);
+            }
+        }
+        #endregion
+    }
+}

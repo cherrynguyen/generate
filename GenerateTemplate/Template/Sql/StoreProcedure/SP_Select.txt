@@ -1,0 +1,171 @@
+﻿-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Select all {TableName}>
+CREATE PROC [{SchemaName}].[sp{TableName}_GetAll]
+AS
+BEGIN
+SET NOCOUNT ON;
+SELECT {ListField}
+FROM [{SchemaName}].[{TableName}]
+END
+  GO
+
+-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Select {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_GetById]
+@{PrimaryKey} {PrimaryType}
+AS
+BEGIN
+SET NOCOUNT ON;
+SELECT {ListField}
+  FROM [{SchemaName}].[{TableName}]
+WHERE {PrimaryKey} = @{PrimaryKey}
+END
+GO
+
+-- Author:		{Author}
+-- Create date: {CreatedDate}
+-- Description:	Get List {TableName} Pagging
+CREATE PROCEDURE [{SchemaName}].[sp{TableName}_GetByPaging]
+	@pageIndex int,
+	@pageSize int,
+	@filter nvarchar(2000),
+	@sort nvarchar(255),
+	@keyword nvarchar(500),
+	@totalRecord int out
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	DECLARE @pagingQuery nvarchar(2000);
+	DECLARE @totalQuery nvarchar(2000);
+	
+	IF (@sort='')
+		BEGIN
+			SET @sort = '[{PrimaryKey}]';
+		END
+	-- get total record
+	SET @totalQuery ='SELECT @totalRecordOut = COUNT({PrimaryKey})
+					  FROM (SELECT {PrimaryKey} FROM [{SchemaName}].[{TableName}] WHERE (1=1) ';
+	IF(@filter<>'')	
+		BEGIN
+			SET @totalQuery += ' AND ('+@filter + ')';
+		END
+	IF(@keyword<>'') 
+		BEGIN
+			SET @totalQuery += ' AND (Name LIKE ''%' + @keyword + '%'' OR Description LIKE ''%' + @keyword + '%'')';
+		END
+	SET @totalQuery += ') as tmp';	
+
+	--get data by paging
+	SET @pagingQuery = 'SELECT A.* FROM 
+													(SELECT RowIndex = ROW_NUMBER() OVER (ORDER BY ' +@sort +'), *														
+														FROM [{SchemaName}].[{TableName}]
+														WHERE (1=1)';
+	IF(@filter <> '')
+			SET @pagingQuery += ' AND (' + @filter + ')';
+	IF(@keyword<>'') 
+		BEGIN
+			SET @pagingQuery += ' AND (Name LIKE ''%' + @keyword + '%'' OR Description LIKE ''%' + @keyword + '%'')';
+		END
+	SET @pagingQuery += ') A
+						WHERE RowIndex > ' + CAST((@pageIndex-1)*@pageSize AS nvarchar(255)) + ' AND RowIndex <= ' + CAST((@pageIndex)*@pageSize AS nvarchar(255));
+
+	EXECUTE sp_executesql @totalQuery,N'@totalRecordOut int OUTPUT',@totalRecordOut = @totalRecord OUTPUT;
+	EXECUTE(@pagingQuery);
+END
+GO
+------------------INSET UPDATE DELETE-------------------------
+-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Insert {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Insert]
+{ParamListInsert}
+AS
+BEGIN
+INSERT INTO [{SchemaName}].[{TableName}]
+  (
+    {ColumnListInsert}
+  )
+VALUES
+  (
+    {ValueListInsert}
+  )
+SELECT @@IDENTITY
+END
+GO
+
+-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Update {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Update]
+{ParamListUpdate}
+AS
+BEGIN
+UPDATE [{SchemaName}].[{TableName}]
+SET {ColumnListUpdate}
+WHERE [{PrimaryKey}] = @{PrimaryKey}
+END
+ GO
+
+-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Delete {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Delete]
+@{PrimaryKey} {PrimaryType}
+AS
+BEGIN
+DELETE FROM [{SchemaName}].[{TableName}]
+WHERE [{PrimaryKey}] = @{PrimaryKey}
+END
+GO
+
+
+/*
+***************************************************************************
+	-- Author:			SeTa <{Author}>
+	-- Description:		Delete Activity
+	-- Type:			External
+	-- Date				PIC					Update record
+	-- {CreatedDate}	SeTa <{Author}>		Create new
+***************************************************************************
+*/
+
+CREATE procedure [{SchemaName}].[{spName}]
+
+	@{PrimaryKey}						{PrimaryType},
+	@UserID								bigint
+as
+
+begin
+
+	begin try
+		
+		delete	{TableShortName}
+
+		from	[{SchemaName}].[{TableName}] {TableShortName} (nolock)
+
+		where	{TableShortName}.[{PrimaryKey}] = @{PrimaryKey}
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{spName}: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar, @{PrimaryKey})
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'DEL', @SessionID, @AddlInfo
+
+	end catch
+end
+
+Go

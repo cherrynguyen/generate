@@ -1,0 +1,128 @@
+﻿@using SysPro.Core.Helper.Enum
+@using SysPro.Web.Code
+@using SysPro.Web.Models
+@{
+    ViewBag.Title = "View all {TableName}s";
+    if (!SysPro.Core.Helper.Uri.UriHelper.IsHashURL())
+    {
+        Layout = "~/Views/UI3/_Layouts/MasterPage.cshtml";
+    }
+}
+
+@section jsData{
+    <script>
+        $(document).ready(function () {
+            LoadGrid{TableName}Resize();
+            window.sysproJs.generateFilterCharacter('#{TableName}Grid', @Html.ObjectToStringJson(ConvertKeyName.Chars));
+        });
+
+        function LoadGrid{TableName}Resize() {
+            var windowHeight = $(window).height();
+            $('#{TableName}Grid').find(".k-grid-content").css('height', windowHeight - 247 + 'px');
+        }
+    </script>
+}
+
+@{
+    var state = (State)ViewBag.state;
+    var defaultColumns = new List<GridColumn>
+          {
+              {ListField}
+			  new GridColumn { Field = "{PrimaryKey}", Title = "Options", Position = 4, Visiable = true, Width = 100, Template = "<a class=\"btn-crm btn-crm-action btn-delete\" onclick='return {TableNameLower}Controller.onDelete(#={PrimaryKey}#);' href=\"\\#delete\" title='"+@GRUD.GetIconTooltipByKey("{TableName}Tooltip_Delete")+"'><span class=\"glyphicon glyphicon-trash\"></span></a>" }
+          };
+    var gridState = state.Grid(Constants.Grid{TableName}List, defaultColumns);
+}
+<input id="CurrentModuleId" value="@ViewBag.ModuleId" type="hidden"/>
+<input id="currentObjectID" value="0" type="hidden"/>
+
+@(Html.Kendo()
+    .Grid<{TableName}Model>() // Model
+    .HtmlAttributes(new
+    {
+        @class = "grid hide",
+        key = Constants.Grid{TableName}List,
+        gridstate = true.ToString().ToLower()
+    })
+    .Name("{TableName}Grid")
+    .AutoBind(true)
+    .Columns(columns =>
+    {
+        columns.Bound(p => p.KeyFilter).Hidden(true).IncludeInMenu(false);
+        foreach (var gridColumn in gridState.Columns)
+        {
+            var columnBound = columns.Bound(gridColumn.Field);
+            columnBound.Title(gridColumn.Title);
+            columnBound.Hidden(!gridColumn.Visiable);
+            columnBound.Width(gridColumn.Width);
+            columnBound.ClientTemplate(gridColumn.Template);
+            columnBound.HtmlAttributes(new {state = true.ToString().ToLower()});
+                columnBound.Filterable(gridColumn.Filterable);
+        }
+    })
+    .Reorderable(p => p.Columns(true))
+    .Resizable(p => p.Columns(true))
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .Batch(false)
+        .ServerOperation(true)
+        .PageSize(25)
+        .Model(model => model.Id(p => p.{PrimaryKey}))
+        .Read(read =>
+        {
+            read.Action("{TableName}ReadAll", "{TableName}", new { keyword = "" });
+            read.Type(HttpVerbs.Get);
+        })
+        .Sort(sort => sort.Add("{PrimaryKey}").Descending())
+    )
+    .Selectable(selectable => selectable.Mode(GridSelectionMode.Single))
+    .Pageable(pageable =>
+    {
+        pageable.PageSizes(new[] { 5, 15, 25, 50, 100 });
+        pageable.Input(true).Refresh(true);
+    })
+    .Scrollable(scroll =>
+    {
+        scroll.Enabled(true);
+        scroll.Virtual(false);
+        scroll.Height(100);
+    })
+    .Sortable(sort =>
+    {
+        sort.AllowUnsort(true);
+        sort.SortMode(GridSortMode.SingleColumn);
+    })
+    .ColumnMenu(m =>
+    {
+        if (bool.Parse(SysPro.Core.Configuration.Config.GetConfigByKey("KendoGrid_ColumnMenu")))
+        {
+            m.Enabled(true);
+            m.Sortable(false);
+        }
+        else
+        {
+            m.Enabled(false);
+        }
+    })
+    .Filterable()
+    .ToolBar(toolbar =>
+    {
+        toolbar.Template(@<text>
+                        <div class="row">
+                            <div class="control-top col-sm-1 col-xs-1">
+                                <strong>{TableName}s</strong>
+                            </div>
+                            <div class="col-sm-11 col-xs-11">
+                                <ul class="nav navbar-right nav-pills flRight" style="float: right;">
+                                    <li>
+                                        <a id="AddNew{TableName}" class="btn btn-grey btn-crm btn-crm-action" href="javascript:void(0)" title="@GRUD.GetIconTooltipByKey("Add{TableName}")"><span class="glyphicon glyphicon-plus"></span></a>
+                                    </li>
+                                </ul>
+
+                            </div>
+                        </div>
+                        </text>);
+    })
+    .Events(e => e.DataBound("showGrid"))
+)
+
+@Html.Partial(@"CommonModules\LeftFilterByCharactor")

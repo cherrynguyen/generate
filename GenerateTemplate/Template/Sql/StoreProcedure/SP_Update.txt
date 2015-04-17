@@ -1,0 +1,9 @@
+﻿-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Update {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Update]
+{ParamListInsert}
+AS
+UPDATE [{SchemaName}].[{TableName}]
+   SET {ColumnListUpdate}
+ WHERE [{PrimaryKey}] = @{PrimaryKey}

@@ -1,0 +1,292 @@
+﻿/*
+***************************************************************************
+	-- Author:			SeTa {Author}
+	-- Description:		Delete {TableName}
+	-- Type:			Internal
+	-- Date				PIC					Update record
+	-- {CreatedDate}	SeTa {Author}		Create new
+***************************************************************************
+*/
+
+CREATE procedure {SchemaName}.{prefix}_Delete_{TableNoSpace}
+
+	@{PrimaryKey}						{PrimaryType},
+	@UserID								bigint
+as
+
+begin
+
+	begin try
+		
+		delete	{TableShortName}
+
+		from	{SchemaName}.{TableName} {TableShortName} (nolock)
+
+		where	{TableShortName}.{PrimaryKey} = @{PrimaryKey}
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{prefix}_Delete_{TableNoSpace}: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar, @{PrimaryKey})
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'DEL', @SessionID, @AddlInfo
+
+	end catch
+end
+
+Go
+
+/*
+***************************************************************************
+	-- Author:			SeTa {Author}
+	-- Description:		Delete {TableName}
+	-- Type:			External
+	-- Date				PIC					Update record
+	-- {CreatedDate}	SeTa {Author}		Create new
+***************************************************************************
+*/
+
+CREATE procedure {SchemaName}.{prefix}_Delete_{TableNoPrefix}
+
+	@{PrimaryKey}						{PrimaryType},
+	@UserID								bigint
+as
+
+begin
+
+	begin try
+		
+		delete	{TableShortName}
+
+		from	{SchemaName}.{TableName} {TableShortName} (nolock)
+
+		where	{TableShortName}.{PrimaryKey}	= @{PrimaryKey}
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{prefix}_Delete_{TableNoPrefix}: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar, @{PrimaryKey})
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'DEL', @SessionID, @AddlInfo
+
+	end catch
+end
+
+Go
+
+
+
+
+/*
+***************************************************************************
+	-- Author:			SeTa {Author}	
+	-- Description:		Get {TableName}
+	-- Type:			External
+	-- Date				PIC					Update record
+	-- {CreatedDate}	SeTa {Author}		Create new	
+***************************************************************************
+*/
+
+CREATE procedure  {SchemaName}.{prefix}_Get_{TableNoPrefix}Info
+	@{PrimaryKey}						{PrimaryType}
+as
+
+begin
+
+	begin try
+			
+			select	{ListField}
+
+			from	{SchemaName}.{TableName} {TableShortName} (nolock)
+
+			where	{TableShortName}.{PrimaryKey} = @{PrimaryKey}
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{prefix}_Get_{TableNoPrefix}Info: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar,  @{PrimaryKey}) 
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'GET', @SessionID, @AddlInfo
+
+	end catch
+
+end
+
+Go
+
+
+
+
+/*
+***************************************************************************
+	-- Author:			SeTa {Author}
+	-- Description:		Update {TableNoPrefix} 's info	
+	-- Type:			Internal
+	-- Date				PIC					Update record
+	-- {CreatedDate}    SeTa {Author}		Create new
+***************************************************************************
+*/
+
+CREATE procedure {SchemaName}.{prefix}_Update_{prefix}{TableNoPrefix}
+	
+		@XMLID							int,
+		@UserID							bigint,
+		@{PrimaryKey}					{PrimaryType}		= null output
+as
+
+begin
+
+	begin try
+		
+		if isnull(@{PrimaryKey},0) > 0
+		begin
+			--Update mode
+			update	{TableShortName}
+			
+			set		{ListSetFieldX},
+
+					UpdatedDate					= getdate(),
+					UpdatedUserID				= @UserID
+
+			from openxml(@XMLID,'/{NodeX}',2)
+			with		({ListFieldX})x
+
+			inner join	{SchemaName}.{TableName} {TableShortName} (nolock)
+				on	{TableShortName}.{PrimaryKey}	= @{PrimaryKey}
+
+			where	isnull(x.{RequiredField},'')	<> ''
+				and ({WhereListFieldChange})
+		end
+		else
+		begin
+			--Insert mode
+			insert into {SchemaName}.{TableName}
+						({ColumnListInsert},
+						CreatedDate,
+						CreatedUserID)
+			
+			select		{ListSetFieldX},
+
+						CreatedDate					= getdate(),
+						CreatedUserID				= @UserID
+
+			from openxml(@XMLID,'/{NodeX}',2)
+			with		({ListFieldX})x
+
+			where not exists	
+				(select 1
+				from	{SchemaName}.{TableName} {TableShortName} (nolock)
+				where	isnull({TableShortName}.{RequiredField},'')	= isnull(x.{RequiredField},''))
+			
+			set		@{PrimaryKey}				= scope_identity()
+			
+			
+		end
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{prefix}_Update_{prefix}{TableNoPrefix}: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}'+ convert(varchar,@{PrimaryKey}) + '@UserID=' + convert(varchar,@UserID)
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'UPD', @SessionID, @AddlInfo
+
+	end catch
+
+end
+
+
+/*
+***************************************************************************
+	-- Author:			SeTa {Author}
+	-- Description:		Update {TableNoPrefix}'s info
+	-- Type:			External
+	-- Date				PIC					Update record
+	-- {CreatedDate}    SeTa {Author}		Create new
+***************************************************************************
+*/
+
+CREATE procedure {SchemaName}.{prefix}_Update_{TableNoPrefix}Info
+		@{PrimaryKey}					{PrimaryType} output
+		@UserID							bigint,	
+		@XML							varchar(max)
+as
+
+	begin try
+		
+		begin
+			declare	@XMLID					int
+			
+			set @{PrimaryKey}				= isnull(@{PrimaryKey},0)
+				
+			set	@XML						= dbo.ufn_Replace_XmlChars(@XML)
+				
+
+			exec sp_xml_preparedocument	@XMLID out, @XML
+
+			--0. Store updated UserID
+			exec	utl_Insert_utlFunctionUserUpdate {PrimaryKey}, @{PrimaryKey}, @UserID, 'Setup'
+
+			--1. Update Source's info
+			exec	{SchemaName}.{prefix}_Update_{prefix}{TableNoPrefix} @XMLID, @UserID, @{PrimaryKey} output
+	
+			exec sp_xml_removedocument @XMLID
+		end
+		
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{SchemaName}.{prefix}_Update_{TableNoPrefix}Info: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar, @{PrimaryKey}) + ',@UserID=' + convert(varchar,@UserID)
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'UPD', @SessionID, @AddlInfo
+
+	end catch

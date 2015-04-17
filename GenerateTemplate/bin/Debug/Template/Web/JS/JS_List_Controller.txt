@@ -1,0 +1,236 @@
+﻿(function (window, $) {
+    //Define plugins
+    $.fn.{TableNameLower}Controller = function (options) {
+        var defaultOptions = {};
+        // Establish our default settings
+        var settings = $.extend(defaultOptions, options);
+        return this.each(function () {
+            //code here
+        });
+    };
+
+    //Method private
+    function debug($obj) {
+        if (window.console && window.console.log) {
+            window.console.log("hilight selection count: " + $obj.size());
+        }
+    };
+
+    //Global variable - Helpers
+    window.{TableNameLower}Controller = {
+        init: function () {
+            switch (window.sysproJs.oGlobal.action.toLowerCase()) {
+                case "index":
+                    $('#btnAddNew{TableName}').on('click', function (e) {
+                        window.location.href = "/{TableName}/AddOrEdit{TableName}";
+                    });
+
+                    var searchFlag = '0';
+                    $("#btn-grid-search").on("click", function () {
+                        searchFlag = $("#searchFlag").val();
+                        if (searchFlag == '0') {
+                            $("#inputSearchGrid").removeClass("hidden");
+                            $("#inputSearchGrid").animate({ "width": "350px" }, "slow");
+                            setTimeout(function () {
+                                $("#inputSearchGrid").focus();
+                            }, 600);
+                            $("#searchFlag").val(1);
+                        }
+                        else {
+                            if ($("#inputSearchGrid").val() != '') {
+                                $("#{TableName}Grid").data("kendoGrid").dataSource.read();
+                            }
+
+                            if ($("#inputSearchGrid").val() == '') {
+                                $("#inputSearchGrid").removeClass("hidden");
+                                $("#searchFlag").val(0);
+                            }
+                        }
+                    });
+
+                    $("#inputSearchGrid").blur(function () {
+                        if ($("#inputSearchGrid").val() == '') {
+                            $("#inputSearchGrid").animate({ "width": "0px" }, "slow");
+                            setTimeout(function () {
+                                $("#inputSearchGrid").addClass("hidden");
+                            }, 600);
+                            $("#searchFlag").val(0);
+                            $("#{TableName}Grid").data("kendoGrid").dataSource.read();
+                        }
+                    }).keypress(function (e) {
+                        if (e.which == 13) {
+                            $("#{TableName}Grid").data("kendoGrid").dataSource.read();
+                        }
+                    });
+
+                    $('#export-pdf').on('click', function (e) {
+                        var action = "/{TableName}/ExportToPdf";
+                        //var action = "/{TableName}/ExportToPdfTest";
+                        var grid = $("#{TableName}Grid").data().kendoGrid;
+                        var data = grid.dataSource._params();
+                        var prepared = grid.dataSource.transport.parameterMap(data);
+
+                        var search = $("#inputSearchGrid").val();
+                        prepared.keyword = search;
+                        prepared.title = "{TableName}s";
+
+                        $.ajax({
+                            type: "POST",
+                            url: action,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            data: JSON.stringify(prepared)
+                        })
+                        .done(function (p) {
+                            window.location = kendo.format("{0}?title={1}",
+                                "/Download/PdfFile",
+                                "{TableName}s");
+                        });
+                    });
+                    $('#export-excel').on('click', function (e) {
+                        var action = "/{TableName}/ExportToExcel";
+                        var grid = $("#{TableName}Grid").data().kendoGrid;
+                        var data = grid.dataSource._params();
+                        var prepared = grid.dataSource.transport.parameterMap(data);
+
+                        var search = $("#inputSearchGrid").val();
+                        prepared.keyword = search;
+                        prepared.title = "{TableName}s";
+                        $.ajax({
+                            type: "POST",
+                            url: action,
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            data: JSON.stringify(prepared)
+                        })
+                        .done(function (p) {
+                            window.location = kendo.format("{0}?title={1}",
+                                "/Download/ExcelFile",
+                                "{TableName}s");
+                        });
+                    });
+                    $('#export-printer').on('click', function (e) {
+
+                        var grid = $("#{TableName}Grid").data().kendoGrid;
+                        var data = grid.dataSource._params();
+                        var prepared = grid.dataSource.transport.parameterMap(data);
+
+                        var search = $("#inputSearchGrid").val();
+                        prepared.keyword = search;
+                        $.ajax({
+                            type: "POST",
+                            url: "/{TableName}/ExportToPrinter",
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            data: JSON.stringify(prepared)
+                        })
+                        .done(function (p) {
+                            var divprint = $('<div>');
+                            $(divprint).html(p.ex);
+                            $(divprint).printArea();
+                            $(divprint).html("");
+                        });
+
+                    });
+                    break;
+            }
+        },
+        onEdit: function ({PrimaryKeyLower}) {
+            window.location.href = "/{TableName}/AddOrEdit{TableName}/" + {PrimaryKeyLower};
+        },
+        onDelete: function ({PrimaryKeyLower}) {
+            window.sysproJs.msgConfirm({
+                text: window.sysproJs.l("Message_DeleteWarning").format("{TableName}"),
+                buttons: [{
+                    text: 'Yes',
+                    onClick: function ($noty) {
+                        $noty.close();
+                        $.ajax({
+                            url: '/{TableName}/Delete{TableName}',
+                            type: 'DELETE',
+                            data: { '{PrimaryKeyLower}': {PrimaryKeyLower} },
+                            dataType: 'json',
+                            cache: false,
+                            success: function (respose) {
+                                if (respose.result === true) {
+                                    window.sysproJs.msgSuccess({ text: respose.msg });
+                                    var grid = $("#{TableName}Grid");
+                                    if (grid.length > 0) {
+                                        var gridData = grid.data("kendoGrid");
+                                        gridData.dataSource.read();
+                                    }
+                                }
+                                else {
+                                    window.sysproJs.msgError({ text: result.msg });
+                                }
+                            }
+                        });
+                    }
+                }, {
+                    text: 'No',
+                    onClick: function ($noty) {
+                        $noty.close();
+                    }
+                }]
+            });
+        },
+        gridExtendParameters: function () {
+            return {
+                keyword: $("#inputSearchGrid").val()
+            };
+        },
+        win: {
+            init: function (title, url, data, afterLoad) {
+                var obj = this;
+                var win = $("<div class='popup-content' id='{TableNameLower}Window'>").kendoWindow({
+                    minWidth: "680px",
+                    minHeight: "200px",
+                    height: "200px",
+                    draggable: true,
+                    modal: true,
+                    resizable: true,
+                    actions: ["Close"],
+                    title: title,
+                    content: {
+                        url: url,
+                        cache: false,
+                        dataType: "html",
+                        type: "GET",
+                        data: data
+                    },
+                    resize: function () {
+                        var pn = $("#{TableNameLower}Window").find(".popup-container").first();
+                        pn.width("100%");
+                        pn.height("100%");
+                        pn.getNiceScroll().resize();
+                    },
+                    close: function () {
+                        $(win).fadeOut(250, function () {
+                            $(win).data("kendoWindow").destroy();
+                        });
+                    },
+                    refresh: function () {
+                        if (typeof afterLoad === 'function') {
+                            afterLoad();
+                        }
+
+                        // Add dropdown tooltip when rendered on window
+                        $('.k-widget.k-dropdown').addTooltip();
+                    }
+                });
+
+                $(win).delegate(".btn-cancel", "click", function (e) {
+                    e.preventDefault();
+                    obj.close(win);
+                });
+
+                return win.data("kendoWindow");
+            },
+            close: function (win) {
+                $(win).data("kendoWindow").close();
+            }
+        }
+    };
+
+    {TableNameLower}Controller.init(); // run  init
+})(window, jQuery);

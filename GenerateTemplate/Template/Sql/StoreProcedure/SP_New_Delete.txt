@@ -1,0 +1,47 @@
+﻿/*
+***************************************************************************
+	-- Author:			SeTa <{Author}>
+	-- Description:		Delete Activity
+	-- Type:			External
+	-- Date				PIC					Update record
+	-- {CreatedDate}	SeTa <{Author}>		Create new
+***************************************************************************
+*/
+
+CREATE procedure [{SchemaName}].[{spName}]
+
+	@{PrimaryKey}						{PrimaryType},
+	@UserID								bigint
+as
+
+begin
+
+	begin try
+		
+		delete	{TableShortName}
+
+		from	[{SchemaName}].[{TableName}] {TableShortName} (nolock)
+
+		where	{TableShortName}.[{PrimaryKey}] = @{PrimaryKey}
+
+	end try
+
+	begin catch
+
+		declare	@ErrorNum				int,
+				@ErrorMsg				varchar(200),
+				@ErrorProc				varchar(50),
+				@SessionID				int,
+				@AddlInfo				varchar(max)
+
+		set @ErrorNum					= error_number()
+		set @ErrorMsg					= '{spName}: ' + error_message()
+		set @ErrorProc					= error_procedure()
+		set @AddlInfo					= '@{PrimaryKey}=' + convert(varchar, @{PrimaryKey})
+
+		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'DEL', @SessionID, @AddlInfo
+
+	end catch
+end
+
+Go

@@ -1,0 +1,8 @@
+﻿-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Delete {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Delete]
+@{PrimaryKey} {PrimaryType}
+AS
+DELETE FROM [{SchemaName}].[{TableName}]
+WHERE [{PrimaryKey}] = @{PrimaryKey}

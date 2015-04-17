@@ -1,0 +1,15 @@
+﻿-- Author:		<{Author}>
+-- Create date: <{CreatedDate}>
+-- Description:	<Insert {TableName} item>
+CREATE PROC [{SchemaName}].[sp{TableName}_Insert]
+{ParamListInsert}
+AS
+INSERT INTO [{SchemaName}].[{TableName}]
+  (
+    {ColumnListInsert}
+  )
+VALUES
+  (
+    {ValueListInsert}
+  )
+SELECT @@IDENTITY

@@ -1,0 +1,165 @@
+﻿using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using Dapper;
+using SysPro.Core.Data;
+using SysPro.Entity;
+using SysPro.Interface;
+using SysPro.Core.EF;
+
+
+namespace SysPro.Implement.ADONET
+{
+    public class {TableName}ADOIpl : BaseIpl<ADOProvider>, I{TableName}
+    {
+        public {TableName}ADOIpl(string schema)
+            : base(schema)
+        {            
+        }
+
+        /// <summary>
+        /// Get By Pagging
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="sort"></param>
+        /// <param name="filter"></param>
+        /// <param name="name"></param>
+        /// <param name="totalRecord"></param>
+        /// <returns></returns>
+        public List<{TableName}> GetAllByPaging(int pageIndex, int pageSize, string sort, string filter, string keyword, ref int totalRecord)
+        {
+            var data = new List<{TableName}>();
+            var param = new DynamicParameters();
+            param.Add("@pageIndex", pageIndex);
+            param.Add("@pageSize", pageSize);
+            param.Add("@filter", filter);
+            param.Add("@sort", sort);
+            param.Add("@keyword", keyword);
+            param.Add("@TotalRecord", totalRecord, dbType: DbType.Int32, direction: ParameterDirection.Output);
+            using (
+                var multiData = unitOfWork.ProcedureQueryMulti(
+                    unitOfWork.RunProcedureSchema("sp{TableName}_GetByPaging"), param))
+            {
+                var itemList = multiData.Read<{TableName}>();
+                data = (from item in itemList
+                        select new {TableName}
+                                   {
+                                       {ListFieldGet}
+									   CreatedDate = item.CreatedDate,
+									   CreatedBy = item.CreatedBy,
+									   LastModifiedBy = item.LastModifiedBy,
+									   LastModifiedDate = item.LastModifiedDate,
+                                       {PrimaryKey} = item.{PrimaryKey}
+                                   }).ToList();
+
+            }
+            totalRecord = param.Get<int>("@TotalRecord");
+            return data;
+        }
+
+        /// <summary>
+        /// Get By Pagging
+        /// </summary>
+        /// <param name="pageIndex"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="sort"></param>
+        /// <param name="filter"></param>
+        /// <param name="name"></param>
+        /// <param name="totalRecord"></param>
+        /// <returns></returns>
+        public List<{TableName}> GetAllFor{TableName}(string sort, string filter, string keyword)
+        {
+            var data = new List<{TableName}>();
+            var param = new DynamicParameters();
+            param.Add("@filter", filter);
+            param.Add("@sort", sort);
+            param.Add("@keyword", keyword);
+            using (
+                var multiData = unitOfWork.ProcedureQueryMulti(
+                    unitOfWork.RunProcedureSchema("sp{TableName}_GetFor{TableName}"), param))
+            {
+                var itemList = multiData.Read<{TableName}>();
+                data = (from item in itemList
+                        select new {TableName}
+                        {
+                            {ListFieldGet}
+							CreatedDate = item.CreatedDate,
+                            CreatedBy = item.CreatedBy,
+                            LastModifiedBy = item.LastModifiedBy,
+                            LastModifiedDate = item.LastModifiedDate,
+                            {PrimaryKey} = item.{PrimaryKey}
+                        }).ToList();
+
+            }
+            return data;
+        }
+
+        /// <summary>
+        /// Get By {TableName}ID with Column, Header, Footer
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public {TableName} GetById(long id)
+        {
+            var data = new {TableName}();
+            using (var multiData = unitOfWork.ProcedureQueryMulti(unitOfWork.RunProcedureSchema("sp{TableName}_GetById"), new { {PrimaryKey} = id }))
+            {
+                data = multiData.Read<{TableName}>().FirstOrDefault();
+            }
+            return data;
+        }
+
+        #region Insert {TableName}
+
+        public long Insert({TableName} {TableNameLower})
+        {
+            var param = GetDynamicParams({TableNameLower});
+            unitOfWork.ProcedureExecute(unitOfWork.RunProcedureSchema("sp{TableName}_Insert"), param);
+            var idOutput = param.Get<long>("@{PrimaryKey}");
+            return idOutput;
+        }
+        #endregion
+
+        #region Update {TableName}
+
+        public bool Update({TableName} {TableNameLower})
+        {
+            var param = GetDynamicParams({TableNameLower});
+
+            var rs = unitOfWork.ProcedureExecute(unitOfWork.RunProcedureSchema("sp{TableName}_Update"), param);
+            return rs;
+        }
+
+        #endregion
+        public bool Delete({PrimaryType} id)
+        {
+            var param = new DynamicParameters();
+            param.Add("@{PrimaryKey}", id);
+            return unitOfWork.ProcedureExecute(unitOfWork.RunProcedureSchema("sp{TableName}_Delete"), param);
+        }
+
+        #region Function
+
+        private DynamicParameters GetDynamicParams({TableName} itemInfo)
+        {
+            var param = new DynamicParameters();
+            {ListFieldParam}
+            if (itemInfo.{PrimaryKey} > 0)
+            {
+				param.Add("@CreatedBy", itemInfo.CreatedBy);
+				param.Add("@CreatedDate", itemInfo.CreatedDate);
+                param.Add("@{PrimaryKey}", itemInfo.{PrimaryKey});
+            }
+            else
+            {
+				param.Add("@LastModifiedBy", itemInfo.LastModifiedBy);
+				param.Add("@LastModifiedDate", itemInfo.LastModifiedDate);
+                param.Add("@{PrimaryKey}", dbType: {PrimaryDbType}, direction: ParameterDirection.Output);
+            }
+            return param;
+        }
+
+        #endregion
+    }
+}

@@ -1,0 +1,15 @@
+D:\Develop\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
+D:\Develop\Project2014\VS\GenerateTemplateUtils2014\Core\bin\Debug\Core.dll
+D:\Develop\Project2014\VS\GenerateTemplateUtils2014\Core\bin\Debug\Core.pdb
+D:\Develop\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.dll
+D:\Develop\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.pdb
+D:\Config\Projects\Project2014\VS\GenerateTemplateUtils2014\Core\bin\Debug\Core.dll
+D:\Config\Projects\Project2014\VS\GenerateTemplateUtils2014\Core\bin\Debug\Core.pdb
+D:\Config\Projects\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
+D:\Config\Projects\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.dll
+D:\Config\Projects\Project2014\VS\GenerateTemplateUtils2014\Core\obj\Debug\Core.pdb
+E:\Working\Common\GenerateTemplateUtils2014\GenerateTemplateUtils2014\Core\bin\Debug\Core.dll
+E:\Working\Common\GenerateTemplateUtils2014\GenerateTemplateUtils2014\Core\bin\Debug\Core.pdb
+E:\Working\Common\GenerateTemplateUtils2014\GenerateTemplateUtils2014\Core\obj\Debug\Core.csprojResolveAssemblyReference.cache
+E:\Working\Common\GenerateTemplateUtils2014\GenerateTemplateUtils2014\Core\obj\Debug\Core.dll
+E:\Working\Common\GenerateTemplateUtils2014\GenerateTemplateUtils2014\Core\obj\Debug\Core.pdb

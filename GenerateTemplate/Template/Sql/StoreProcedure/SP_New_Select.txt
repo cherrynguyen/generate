@@ -1,10 +1,10 @@
 ﻿/*
 ***************************************************************************
-	-- Author:			SeTa {Author}
+	-- Author:			{Author}
 	-- Description:		Delete {TableName}
 	-- Type:			Internal
-	-- Date				PIC					Update record
-	-- {CreatedDate}	SeTa {Author}		Create new
+	-- Date				PIC				Update record
+	-- {CreatedDate}	{Author}		Create new
 ***************************************************************************
 */
 
@@ -48,11 +48,11 @@ Go
 
 /*
 ***************************************************************************
-	-- Author:			SeTa {Author}
+	-- Author:			{Author}
 	-- Description:		Delete {TableName}
 	-- Type:			External
 	-- Date				PIC					Update record
-	-- {CreatedDate}	SeTa {Author}		Create new
+	-- {CreatedDate}	{Author}		Create new
 ***************************************************************************
 */
 
@@ -99,11 +99,11 @@ Go
 
 /*
 ***************************************************************************
-	-- Author:			SeTa {Author}	
+	-- Author:			{Author}	
 	-- Description:		Get {TableName}
 	-- Type:			External
 	-- Date				PIC					Update record
-	-- {CreatedDate}	SeTa {Author}		Create new	
+	-- {CreatedDate}	{Author}		Create new	
 ***************************************************************************
 */
 
@@ -149,11 +149,11 @@ Go
 
 /*
 ***************************************************************************
-	-- Author:			SeTa {Author}
+	-- Author:			{Author}
 	-- Description:		Update {TableNoPrefix} 's info	
 	-- Type:			Internal
 	-- Date				PIC					Update record
-	-- {CreatedDate}    SeTa {Author}		Create new
+	-- {CreatedDate}    {Author}		Create new
 ***************************************************************************
 */
 
@@ -234,22 +234,24 @@ begin
 
 end
 
+go
 
 /*
 ***************************************************************************
-	-- Author:			SeTa {Author}
+	-- Author:			{Author}
 	-- Description:		Update {TableNoPrefix}'s info
 	-- Type:			External
 	-- Date				PIC					Update record
-	-- {CreatedDate}    SeTa {Author}		Create new
+	-- {CreatedDate}    {Author}		Create new
 ***************************************************************************
 */
 
 CREATE procedure {SchemaName}.{prefix}_Update_{TableNoPrefix}Info
-		@{PrimaryKey}					{PrimaryType} output
+		@{PrimaryKey}					{PrimaryType} output,
 		@UserID							bigint,	
 		@XML							varchar(max)
 as
+begin
 
 	begin try
 		
@@ -290,3 +292,7 @@ as
 		exec utl_Insert_ErrorLog @ErrorNum, @ErrorMsg, @ErrorProc, '{TableName}', 'UPD', @SessionID, @AddlInfo
 
 	end catch
+
+end
+
+go

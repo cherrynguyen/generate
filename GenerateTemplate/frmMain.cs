@@ -267,17 +267,17 @@ namespace GenerateTemplateUtils2014
                         listFieldX.AppendLine().Append("\t\t\t\t\t");
                         whereListFieldChange.AppendLine().Append("\t\t\t\t or ");
                     }
-                    columnListInsert.AppendFormat("{0}", dr[1]).Append(",");
-                    listSetFieldX.AppendFormat("{0}\t\t\t\t\t=x.{1}", dr[1], dr[1]).Append(",");
+                    columnListInsert.AppendFormat("[{0}]", dr[1]).Append(",");
+                    listSetFieldX.AppendFormat("{0}\t\t\t\t\t= x.{1}", dr[1], dr[1]).Append(",");
                     listFieldX.AppendFormat("{0}\t\t{1}", dr[1], fieldType).Append(",");
                     whereListFieldChange.AppendFormat("isnull({0}.{1},'')						<> isnull(x.{2},'')", shortName, dr[1], dr[1]);
                 }
 
                 if (listField.Length > 0)
                 {
-                    whereListFieldChange.AppendLine().Append("\t\t\t\t\t");
+                    listField.AppendLine().Append("\t\t\t\t\t");
                 }
-                listField.AppendFormat("[{0}]\t\t\t\t\t= {1}.{2}", dr[1], shortName, dr[1]);
+                listField.AppendFormat("[{0}]\t\t\t\t\t= {1}.[{2}]", dr[1], shortName, dr[1]);
                 if (i + 1 < dtSource.Rows.Count)
                 {
                     listField.Append(",");

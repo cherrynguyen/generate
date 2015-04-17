@@ -273,7 +273,7 @@ begin
 	
 			exec sp_xml_removedocument @XMLID
 		end
-		
+		 
 	end try
 
 	begin catch
